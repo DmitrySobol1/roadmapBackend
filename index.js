@@ -10,7 +10,7 @@ dotenv.config();
 // import https from 'https';
 // const baseurl = `https://api.telegram.org/bot${process.env.BOT_TOKEN}/sendMessage`;
 
-const PORT = process.env.PORT || 444;
+const PORT = process.env.PORT || 4444;
 
 mongoose
   .connect(process.env.DATABASE_URL)
@@ -24,14 +24,14 @@ app.use(cors());
 
 
 
-app.get('/', (req, res) => {
+app.get('/api', (req, res) => {
   res.send('hello man 6');
 });
 
 
 
 // вход пользователя в аппку
-app.post('/enter', async (req, res) => {
+app.post('/api/enter', async (req, res) => {
     try {
       const user = await UserModel.findOne({ tlgid: req.body.tlgid });
   
