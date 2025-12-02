@@ -89,12 +89,12 @@ app.get('/api/user/:tlgid', async (req, res) => {
 app.post('/api/createCourse', async (req, res) => {
   try {
     const doc = await CourseModel.create({
-      type: '692e1426ac3f7961843412a7',
-      name: 'Основы разработки ботов',
+      type: '692e143ef26e76bcafe01026',
+      name: 'Как интегрировать бота с любым сервисом',
       shortDescription: 'short desc',
       longDescription: 'long desc',
       access: 'free',
-      orderNumber: 2,
+      orderNumber: 1,
     });
 
     res.json({ status: 'done', data: doc });
@@ -106,14 +106,15 @@ app.post('/api/createCourse', async (req, res) => {
 app.post('/api/createLesson', async (req, res) => {
   try {
     const doc = await LessonModel.create({
-      linkToCourse: '692e16155b007c223d96f246',
-      name: '0. Введение',
+      linkToCourse: '692f0cf34f6f72d335f8d75c',
+      name: '6. Интеграция по API с любыми нейронками',
 
       shortDescription: 'short desc',
       longDescription: 'long desc',
 
-      urlToFile: 'https://kinescope.io/fjPyD7tEPCidNFMCNqxrsh',
-      numberInListLessons: 0,
+      urlToFile: 'https://kinescope.io/vbqpZcuvC6cmcWRtUwKTnN',
+      numberInListLessons: 6,
+      access: 'payment'
     });
 
     res.json({ status: 'done', data: doc });
