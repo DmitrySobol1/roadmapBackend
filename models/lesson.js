@@ -26,7 +26,15 @@ access: {
     enum: ['free', 'payment'],
     default: 'payment'  // опционально
 },
-
+text1: {
+  type: String
+},
+text2: {
+  type: String
+},
+homework: {
+  type: String
+}
     
     
   },

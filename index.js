@@ -68,6 +68,19 @@ app.get('/api/lessons/:courseId', async (req, res) => {
   }
 });
 
+app.get('/api/lesson/:lessonId', async (req, res) => {
+  try {
+    const { lessonId } = req.params;
+    const lesson = await LessonModel.findById(lessonId).populate('linkToCourse');
+    if (!lesson) {
+      return res.status(404).json({ status: 'error', message: 'Lesson not found' });
+    }
+    res.json(lesson);
+  } catch (error) {
+    res.status(500).json({ status: 'error', message: error.message });
+  }
+});
+
 app.get('/api/user/:tlgid', async (req, res) => {
   try {
     const { tlgid } = req.params;
