@@ -10,6 +10,7 @@ import CourseTypeModel from './models/courseType.js';
 import CourseModel from './models/course.js';
 import LessonModel from './models/lesson.js';
 import UserProgressSchema from './models/userProgress.js';
+import UserFavoriteLessons from './models/userFavoriteLessons.js';
 
 
 const app = express();
@@ -151,6 +152,116 @@ app.delete('/api/progress/:tlgid/:lessonId', async (req, res) => {
       linkToLesson: lessonId
     });
     res.json({ status: 'deleted' });
+  } catch (error) {
+    res.status(500).json({ status: 'error', message: error.message });
+  }
+});
+
+// Получить прогресс по всем урокам курса
+app.get('/api/progress/:tlgid/course/:courseId', async (req, res) => {
+  try {
+    const { tlgid, courseId } = req.params;
+
+    // Получаем все уроки курса
+    const lessons = await LessonModel.find({ linkToCourse: courseId });
+    const lessonIds = lessons.map(l => l._id);
+
+    // Получаем прогресс по этим урокам
+    const progress = await UserProgressSchema.find({
+      tlgid: tlgid,
+      linkToLesson: { $in: lessonIds },
+      isLearned: true
+    });
+
+    // Возвращаем массив id пройденных уроков
+    const learnedLessonIds = progress.map(p => p.linkToLesson.toString());
+    res.json({ learnedLessonIds });
+  } catch (error) {
+    res.status(500).json({ status: 'error', message: error.message });
+  }
+});
+
+// ==========================================
+// Избранные уроки
+
+// Получить избранное по уроку
+app.get('/api/favorite/:tlgid/:lessonId', async (req, res) => {
+  try {
+    const { tlgid, lessonId } = req.params;
+    const favorite = await UserFavoriteLessons.findOne({
+      tlgid: tlgid,
+      linkToLesson: lessonId
+    });
+    res.json({ isFavorite: favorite?.isFavorite || false });
+  } catch (error) {
+    res.status(500).json({ status: 'error', message: error.message });
+  }
+});
+
+// Добавить в избранное
+app.post('/api/favorite', async (req, res) => {
+  try {
+    const { tlgid, lessonId } = req.body;
+
+    const existing = await UserFavoriteLessons.findOne({
+      tlgid: tlgid,
+      linkToLesson: lessonId
+    });
+
+    if (existing) {
+      existing.isFavorite = true;
+      await existing.save();
+      res.json({ status: 'updated', data: existing });
+    } else {
+      const favorite = await UserFavoriteLessons.create({
+        tlgid: tlgid,
+        linkToLesson: lessonId,
+        isFavorite: true
+      });
+      res.json({ status: 'created', data: favorite });
+    }
+  } catch (error) {
+    res.status(500).json({ status: 'error', message: error.message });
+  }
+});
+
+// Удалить из избранного
+app.delete('/api/favorite/:tlgid/:lessonId', async (req, res) => {
+  try {
+    const { tlgid, lessonId } = req.params;
+    await UserFavoriteLessons.deleteOne({
+      tlgid: tlgid,
+      linkToLesson: lessonId
+    });
+    res.json({ status: 'deleted' });
+  } catch (error) {
+    res.status(500).json({ status: 'error', message: error.message });
+  }
+});
+
+// Получить все избранные уроки пользователя
+app.get('/api/favorites/:tlgid', async (req, res) => {
+  try {
+    const { tlgid } = req.params;
+    const favorites = await UserFavoriteLessons.find({
+      tlgid: tlgid,
+      isFavorite: true
+    }).populate({
+      path: 'linkToLesson',
+      populate: {
+        path: 'linkToCourse',
+        populate: {
+          path: 'type'
+        }
+      }
+    });
+
+    // Возвращаем только уроки (без обёртки favorites)
+    const lessons = favorites
+      .filter(f => f.linkToLesson) // Фильтруем записи без урока
+      .map(f => f.linkToLesson);
+
+    res.json(lessons);
   } catch (error) {
     res.status(500).json({ status: 'error', message: error.message });
   }
