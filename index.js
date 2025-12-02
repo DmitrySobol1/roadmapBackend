@@ -5,14 +5,10 @@ import mongoose from 'mongoose';
 
 dotenv.config();
 
-
-
 import UserModel from './models/user.js';
 import CourseTypeModel from './models/courseType.js';
 import CourseModel from './models/course.js';
 import LessonModel from './models/lesson.js';
-
-
 
 const app = express();
 const PORT = process.env.PORT || 4444;
@@ -77,7 +73,9 @@ app.get('/user/:tlgid', async (req, res) => {
     const { tlgid } = req.params;
     const user = await UserModel.findOne({ tlgid });
     if (!user) {
-      return res.status(404).json({ status: 'error', message: 'User not found' });
+      return res
+        .status(404)
+        .json({ status: 'error', message: 'User not found' });
     }
     res.json({ isPayed: user.isPayed || false });
   } catch (error) {
@@ -91,12 +89,12 @@ app.get('/user/:tlgid', async (req, res) => {
 app.post('/createCourse', async (req, res) => {
   try {
     const doc = await CourseModel.create({
-      type:'692e1426ac3f7961843412a7',
+      type: '692e1426ac3f7961843412a7',
       name: 'Основы разработки ботов',
-      shortDescription: 'short desc' ,
+      shortDescription: 'short desc',
       longDescription: 'long desc',
       access: 'free',
-      orderNumber: 2
+      orderNumber: 2,
     });
 
     res.json({ status: 'done', data: doc });
@@ -105,18 +103,17 @@ app.post('/createCourse', async (req, res) => {
   }
 });
 
-
 app.post('/createLesson', async (req, res) => {
   try {
     const doc = await LessonModel.create({
-      linkToCourse:'692e16155b007c223d96f246',
+      linkToCourse: '692e16155b007c223d96f246',
       name: '0. Введение',
-      
-      shortDescription: 'short desc' ,
+
+      shortDescription: 'short desc',
       longDescription: 'long desc',
-      
+
       urlToFile: 'https://kinescope.io/fjPyD7tEPCidNFMCNqxrsh',
-      numberInListLessons: 0
+      numberInListLessons: 0,
     });
 
     res.json({ status: 'done', data: doc });
@@ -127,10 +124,8 @@ app.post('/createLesson', async (req, res) => {
 
 // ===============================================
 
-
-
 // вход пользователя в аппку
-app.post('/enter', async (req, res) => {   
+app.post('/api/enter', async (req, res) => {
   try {
     const { tlgid } = req.body;
 
@@ -146,7 +141,7 @@ app.post('/enter', async (req, res) => {
 
       if (createresponse.status == 'created') {
         const userData = {};
-        console.log('showOnboarding')
+        console.log('showOnboarding');
         userData.result = 'showOnboarding';
         return res.json({ userData });
       }
@@ -155,28 +150,23 @@ app.post('/enter', async (req, res) => {
     // извлечь инфо о юзере из БД и передать на фронт действие
     const { _id, ...userData } = user._doc;
     userData.result = 'showIndexPage';
-    console.log('showIndexPage')
+    console.log('showIndexPage');
     return res.json({ userData });
   } catch (err) {
     // logger.error({
-    //       title: 'Error in endpoint /system/enter', 
+    //       title: 'Error in endpoint /system/enter',
     //       message: err.message,
     //       dataFromServer: err.response?.data,
     //       statusFromServer: err.response?.status,
-    //     }); 
+    //     });
   }
   return res.json({ statusBE: 'notOk' });
 });
 
-
-
-
-
- async function createNewUser(tlgid) {
+async function createNewUser(tlgid) {
   try {
     const doc = new UserModel({
       tlgid: tlgid,
-      
     });
 
     const user = await doc.save();
@@ -191,17 +181,12 @@ app.post('/enter', async (req, res) => {
   }
 }
 
-
-
-
-
 // 404 handler
 app.use((req, res) => {
   res.status(404).json({
     error: 'Route not found',
   });
 });
-
 
 // Error handler
 app.use((err, req, res, next) => {
