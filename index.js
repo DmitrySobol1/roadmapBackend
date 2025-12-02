@@ -35,7 +35,7 @@ app.get('/api', (req, res) => {
 // ==========================================
 // Получение данных из БД
 
-app.get('/courseTypes', async (req, res) => {
+app.get('/api/courseTypes', async (req, res) => {
   try {
     const courseTypes = await CourseTypeModel.find().sort({ orderNumber: 1 });
     res.json(courseTypes);
@@ -44,7 +44,7 @@ app.get('/courseTypes', async (req, res) => {
   }
 });
 
-app.get('/courses/:typeId', async (req, res) => {
+app.get('/api/courses/:typeId', async (req, res) => {
   try {
     const { typeId } = req.params;
     const courses = await CourseModel.find({ type: typeId })
@@ -56,7 +56,7 @@ app.get('/courses/:typeId', async (req, res) => {
   }
 });
 
-app.get('/lessons/:courseId', async (req, res) => {
+app.get('/api/lessons/:courseId', async (req, res) => {
   try {
     const { courseId } = req.params;
     const lessons = await LessonModel.find({ linkToCourse: courseId })
@@ -68,7 +68,7 @@ app.get('/lessons/:courseId', async (req, res) => {
   }
 });
 
-app.get('/user/:tlgid', async (req, res) => {
+app.get('/api/user/:tlgid', async (req, res) => {
   try {
     const { tlgid } = req.params;
     const user = await UserModel.findOne({ tlgid });
@@ -86,7 +86,7 @@ app.get('/user/:tlgid', async (req, res) => {
 // ==========================================
 // Создание информации в БД
 
-app.post('/createCourse', async (req, res) => {
+app.post('/api/createCourse', async (req, res) => {
   try {
     const doc = await CourseModel.create({
       type: '692e1426ac3f7961843412a7',
@@ -103,7 +103,7 @@ app.post('/createCourse', async (req, res) => {
   }
 });
 
-app.post('/createLesson', async (req, res) => {
+app.post('/api/createLesson', async (req, res) => {
   try {
     const doc = await LessonModel.create({
       linkToCourse: '692e16155b007c223d96f246',
