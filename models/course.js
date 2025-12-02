@@ -22,6 +22,9 @@ const CourseSchema = new mongoose.Schema(
 },
 orderNumber: {
   type: Number
+},
+lessonsQty: {
+  type: Number
 }
     
     

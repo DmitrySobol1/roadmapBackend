@@ -9,6 +9,8 @@ import UserModel from './models/user.js';
 import CourseTypeModel from './models/courseType.js';
 import CourseModel from './models/course.js';
 import LessonModel from './models/lesson.js';
+import UserProgressSchema from './models/userProgress.js';
+
 
 const app = express();
 const PORT = process.env.PORT || 4444;
@@ -97,16 +99,74 @@ app.get('/api/user/:tlgid', async (req, res) => {
 });
 
 // ==========================================
+// Прогресс пользователя
+
+// Получить прогресс по уроку
+app.get('/api/progress/:tlgid/:lessonId', async (req, res) => {
+  try {
+    const { tlgid, lessonId } = req.params;
+    const progress = await UserProgressSchema.findOne({
+      tlgid: tlgid,
+      linkToLesson: lessonId
+    });
+    res.json({ isLearned: progress?.isLearned || false });
+  } catch (error) {
+    res.status(500).json({ status: 'error', message: error.message });
+  }
+});
+
+// Сохранить прогресс (урок пройден)
+app.post('/api/progress', async (req, res) => {
+  try {
+    const { tlgid, lessonId } = req.body;
+
+    const existing = await UserProgressSchema.findOne({
+      tlgid: tlgid,
+      linkToLesson: lessonId
+    });
+
+    if (existing) {
+      existing.isLearned = true;
+      await existing.save();
+      res.json({ status: 'updated', data: existing });
+    } else {
+      const progress = await UserProgressSchema.create({
+        tlgid: tlgid,
+        linkToLesson: lessonId,
+        isLearned: true
+      });
+      res.json({ status: 'created', data: progress });
+    }
+  } catch (error) {
+    res.status(500).json({ status: 'error', message: error.message });
+  }
+});
+
+// Удалить прогресс (урок не пройден)
+app.delete('/api/progress/:tlgid/:lessonId', async (req, res) => {
+  try {
+    const { tlgid, lessonId } = req.params;
+    await UserProgressSchema.deleteOne({
+      tlgid: tlgid,
+      linkToLesson: lessonId
+    });
+    res.json({ status: 'deleted' });
+  } catch (error) {
+    res.status(500).json({ status: 'error', message: error.message });
+  }
+});
+
+// ==========================================
 // Создание информации в БД
 
 app.post('/api/createCourse', async (req, res) => {
   try {
     const doc = await CourseModel.create({
-      type: '692e143ef26e76bcafe01026',
-      name: 'Как интегрировать бота с любым сервисом',
-      shortDescription: 'short desc',
-      longDescription: 'long desc',
-      access: 'free',
+      type: '692e144be7f57a4fd2e9ae28',
+      name: 'Базовый минимум для старта в Эй-Ай кодинге',
+      shortDescription: 'программа курса ...',
+      longDescription: 'подготовим и установим всё, что нужно для старта: IDE, AI помощника, софт для работы с БД ',
+      access: 'payment',
       orderNumber: 1,
     });
 
