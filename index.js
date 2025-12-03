@@ -11,6 +11,7 @@ import CourseModel from './models/course.js';
 import LessonModel from './models/lesson.js';
 import UserProgressSchema from './models/userProgress.js';
 import UserFavoriteLessons from './models/userFavoriteLessons.js';
+import StockModel from './models/stock.js';
 
 
 const app = express();
@@ -37,6 +38,28 @@ app.get('/api', (req, res) => {
 
 // ==========================================
 // Получение данных из БД
+
+app.get('/api/stock', async (req, res) => {
+  try {
+    const stock = await StockModel.find().sort({ orderNumber: 1 });
+    res.json(stock);
+  } catch (error) {
+    res.status(500).json({ status: 'error', message: error.message });
+  }
+});
+
+app.get('/api/stock/:stockId', async (req, res) => {
+  try {
+    const { stockId } = req.params;
+    const stockItem = await StockModel.findById(stockId);
+    if (!stockItem) {
+      return res.status(404).json({ status: 'error', message: 'Stock item not found' });
+    }
+    res.json(stockItem);
+  } catch (error) {
+    res.status(500).json({ status: 'error', message: error.message });
+  }
+});
 
 app.get('/api/courseTypes', async (req, res) => {
   try {
@@ -299,6 +322,27 @@ app.post('/api/createLesson', async (req, res) => {
       urlToFile: 'https://kinescope.io/vbqpZcuvC6cmcWRtUwKTnN',
       numberInListLessons: 6,
       access: 'payment'
+    });
+
+    res.json({ status: 'done', data: doc });
+  } catch (error) {
+    res.status(500).json({ status: 'error', message: error.message });
+  }
+});
+
+
+app.post('/api/addStock', async (req, res) => {
+  try {
+    const doc = await StockModel.create({
+      title: 'Шаблон Telegram mini app',
+      subtitle: 'React JS + node js express ',
+
+      shortDescription: 'подробнее ... ',
+      longDescription: 'шаблон, чтобы быстро развернуть TMA. Фронтенд на React, бэкенд на node js express',
+
+      text1: 'git clone https://github.com/easydev001/tma_template.git',
+      text2: '',
+      orderNumber: 1
     });
 
     res.json({ status: 'done', data: doc });
