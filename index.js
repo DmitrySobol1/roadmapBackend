@@ -274,11 +274,11 @@ app.post('/api/createCourse', async (req, res) => {
   try {
     const doc = await CourseModel.create({
       type: '692e144be7f57a4fd2e9ae28',
-      name: 'Базовый минимум для старта в Эй-Ай кодинге',
+      name: 'Бэкенд для нон-кодеров',
       shortDescription: 'программа курса ...',
-      longDescription: 'подготовим и установим всё, что нужно для старта: IDE, AI помощника, софт для работы с БД ',
+      longDescription: 'база по Node JS express. Это простой и популярная библиотека, на котором вы будете создавать бэкенд для своих приложений',
       access: 'payment',
-      orderNumber: 1,
+      orderNumber: 4,
     });
 
     res.json({ status: 'done', data: doc });
