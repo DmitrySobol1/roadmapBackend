@@ -297,11 +297,11 @@ app.post('/api/createCourse', async (req, res) => {
   try {
     const doc = await CourseModel.create({
       type: '692e144be7f57a4fd2e9ae28',
-      name: 'Бэкенд для нон-кодеров',
-      shortDescription: 'программа курса ...',
-      longDescription: 'база по Node JS express. Это простой и популярная библиотека, на котором вы будете создавать бэкенд для своих приложений',
+      name: 'Генератор превью для YouTube',
+      shortDescription: 'подробнее  ...',
+      longDescription: 'разработка TMA с интеграцией Nano Banana, для создания в пару кликов превью для Youtube видео',
       access: 'payment',
-      orderNumber: 4,
+      orderNumber: 5,
     });
 
     res.json({ status: 'done', data: doc });
