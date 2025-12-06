@@ -297,11 +297,11 @@ app.post('/api/createCourse', async (req, res) => {
   try {
     const doc = await CourseModel.create({
       type: '692e144be7f57a4fd2e9ae28',
-      name: 'Генератор превью для YouTube',
+      name: 'Деплой приложения на сервер',
       shortDescription: 'подробнее  ...',
-      longDescription: 'разработка TMA с интеграцией Nano Banana, для создания в пару кликов превью для Youtube видео',
+      longDescription: 'как залить приложение на удаленный сервер',
       access: 'payment',
-      orderNumber: 5,
+      orderNumber: 7,
     });
 
     res.json({ status: 'done', data: doc });
@@ -353,12 +353,37 @@ app.post('/api/addStock', async (req, res) => {
 
 // ===============================================
 
+// Обновить isOnboarded
+app.post('/api/set_onboarded', async (req, res) => {
+  try {
+    const { tlgid } = req.body;
+
+    const user = await UserModel.findOneAndUpdate(
+      { tlgid: tlgid },
+      { isOnboarded: true },
+      { new: true }
+    );
+
+    if (!user) {
+      return res.status(404).json({ status: 'error', message: 'User not found' });
+    }
+
+    res.json({ status: 'success' });
+  } catch (error) {
+    res.status(500).json({ status: 'error', message: error.message });
+  }
+});
+
+// ===============================================
+
 // вход пользователя в аппку
 app.post('/api/enter', async (req, res) => {
   try {
     const { tlgid } = req.body;
 
     const user = await UserModel.findOne({ tlgid: tlgid });
+
+    
 
     //создание юзера
     if (!user) {
@@ -374,6 +399,13 @@ app.post('/api/enter', async (req, res) => {
         userData.result = 'showOnboarding';
         return res.json({ userData });
       }
+    }
+
+    if (user.isOnboarded == false){
+      const { _id, ...userData } = user._doc;
+      console.log('not on boarded');
+      userData.result = 'showOnboarding';
+      return res.json({ userData });
     }
 
     // извлечь инфо о юзере из БД и передать на фронт действие

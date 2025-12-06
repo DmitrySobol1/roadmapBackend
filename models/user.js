@@ -20,7 +20,11 @@ const UserSchema = new mongoose.Schema(
     dateTillPayed: {
       type: Date,
       default: null
-    }
+    },
+    isOnboarded: {
+      type: Boolean,
+      default:false
+    },
     
     
   },
