@@ -20,6 +20,10 @@ const CourseSchema = new mongoose.Schema(
     enum: ['free', 'payment'],
     default: 'payment'  // опционально
 },
+isRecorded: {
+    type: Boolean,
+    default: false  
+},
 orderNumber: {
   type: Number
 },

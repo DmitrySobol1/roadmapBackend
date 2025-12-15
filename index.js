@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import mongoose from 'mongoose';
+import axios from 'axios';
 
 dotenv.config();
 
@@ -12,7 +13,7 @@ import LessonModel from './models/lesson.js';
 import UserProgressSchema from './models/userProgress.js';
 import UserFavoriteLessons from './models/userFavoriteLessons.js';
 import StockModel from './models/stock.js';
-
+import PaymentModel from './models/payment.js'
 
 const app = express();
 const PORT = process.env.PORT || 4444;
@@ -297,11 +298,11 @@ app.post('/api/createCourse', async (req, res) => {
   try {
     const doc = await CourseModel.create({
       type: '692e144be7f57a4fd2e9ae28',
-      name: 'Деплой приложения на сервер',
+      name: 'Создаем свой бэкенд для ноу-кода',
       shortDescription: 'подробнее  ...',
-      longDescription: 'как залить приложение на удаленный сервер',
+      longDescription: '- создаем свой микро-сервис (свой бэкенд), который будет решать задачу, которую нельзя решить стандартными функциями платформы - рассматриваем на реальном примере и создаем проект, который решает следующую задачу:',
       access: 'payment',
-      orderNumber: 7,
+      orderNumber: 2,
     });
 
     res.json({ status: 'done', data: doc });
@@ -313,14 +314,14 @@ app.post('/api/createCourse', async (req, res) => {
 app.post('/api/createLesson', async (req, res) => {
   try {
     const doc = await LessonModel.create({
-      linkToCourse: '692f0cf34f6f72d335f8d75c',
-      name: '6. Интеграция по API с любыми нейронками',
+      linkToCourse: '693e0106de332160efd45fb3',
+      name: 'Урок 1. Создаем свой бэкенд для ноу-кода',
 
-      shortDescription: 'short desc',
-      longDescription: 'long desc',
+      shortDescription: 'подробнее',
+      longDescription: '- создаем свой микро-сервис (свой бэкенд), для решения задачи, которую нельзя решить стандартными функциями no-code платформы',
 
-      urlToFile: 'https://kinescope.io/vbqpZcuvC6cmcWRtUwKTnN',
-      numberInListLessons: 6,
+      urlToFile: 'https://kinescope.io/r7J1CfjvLuyAUmxDmyW68F',
+      numberInListLessons: 1,
       access: 'payment'
     });
 
@@ -441,6 +442,115 @@ async function createNewUser(tlgid) {
     return false;
   }
 }
+
+// ===============================================
+// Отправка сообщения в Telegram бота для оплаты
+// ===============================================
+app.post('/api/sendPaymentMessage', async (req, res) => {
+  try {
+    const { tlgid } = req.body;
+
+    if (!tlgid) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'tlgid is required'
+      });
+    }
+
+    // Отправляем сообщение боту через Telegram API
+    await axios.post(
+      `https://api.telegram.org/bot${process.env.BOT_TOKEN}/sendMessage`,
+      {
+        chat_id: tlgid,
+        text: 'нажмите 👉/pay , что бы пополнить баланс',
+      }
+    );
+
+    return res.json({
+      status: 'success',
+      message: 'Message sent successfully'
+    });
+  } catch (err) {
+    console.error('Error sending payment message:', err.message);
+    return res.status(500).json({
+      status: 'error',
+      message: 'Failed to send message',
+      error: err.message
+    });
+  }
+});
+
+// ===============================================
+// Webhook об оплате
+// ===============================================
+
+
+app.post('/api/webhook_payment', async (req, res) => {
+  try {
+    const { paydUser, paydSum, paydDays} = req.body;
+
+    console.log('=== WEBHOOK: Получены данные о платеже из бота ===');
+    console.log('Body:', JSON.stringify(req.body, null, 2));
+
+    const payment = await PaymentModel.create(
+      {
+      tlgid: paydUser,
+      sum: paydSum,
+      payedPeriodInDays: paydDays,
+      paymentDateUTC: new Date()
+      }
+    )
+
+    // Получаем текущего пользователя
+    const currentUser = await UserModel.findOne({ tlgid: paydUser });
+
+    // Вычисляем новую дату окончания подписки
+    const daysToAdd = Number(paydDays); // Преобразуем строку в число
+    let newDateTillPayed;
+    if (currentUser.dateTillPayed) {
+      // Если есть дата окончания - прибавляем к ней дни
+      newDateTillPayed = new Date(currentUser.dateTillPayed);
+      newDateTillPayed.setDate(newDateTillPayed.getDate() + daysToAdd);
+    } else {
+      // Если даты нет - прибавляем к текущей дате
+      newDateTillPayed = new Date();
+      newDateTillPayed.setDate(newDateTillPayed.getDate() + daysToAdd);
+    }
+
+    const updatedUser = await UserModel.findOneAndUpdate(
+      { tlgid: paydUser },
+      {
+          $set: {
+          dateTillPayed: newDateTillPayed,
+          isPayed: true,
+        },
+      },
+      { new: true }
+    );
+
+    console.log('new date', updatedUser.dateTillPayed )
+
+    // Форматируем дату в формат DD.MM.YYYY для фронтенда
+    const day = String(newDateTillPayed.getDate()).padStart(2, '0');
+    const month = String(newDateTillPayed.getMonth() + 1).padStart(2, '0');
+    const year = newDateTillPayed.getFullYear();
+    const formattedDate = `${day}.${month}.${year}`;
+
+    // Отправляем ответ платежной системе (обычно требуется 200 OK)
+    return res.status(200).json({
+      status: 'success',
+      dateTillPayed: formattedDate
+    });
+  } catch (err) {
+    console.error('Webhook error:', err);
+    return res.status(500).json({
+      status: 'error',
+    });
+  }
+});
+
+
+
 
 // 404 handler
 app.use((req, res) => {
