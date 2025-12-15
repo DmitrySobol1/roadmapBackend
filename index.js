@@ -549,7 +549,46 @@ app.post('/api/webhook_payment', async (req, res) => {
   }
 });
 
+// Проверка кодового слова онбординга
+app.post('/api/checkCodeWord', async (req, res) => {
+  try {
+    const { tlgid, codeWord } = req.body;
 
+    if (!tlgid || !codeWord) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'tlgid and codeWord are required'
+      });
+    }
+
+    // Получаем кодовое слово из env
+    const correctCodeWord = process.env.CODE_WORLD;
+
+    // Приводим к нижнему регистру и сравниваем
+    if (codeWord.toLowerCase() === correctCodeWord?.toLowerCase()) {
+      // Обновляем пользователя
+      await UserModel.findOneAndUpdate(
+        { tlgid },
+        { isOnboarded: true },
+        { new: true }
+      );
+
+      return res.json({
+        status: 'success'
+      });
+    } else {
+      return res.json({
+        status: 'wrong'
+      });
+    }
+  } catch (err) {
+    console.error('Check code word error:', err);
+    return res.status(500).json({
+      status: 'error',
+      message: 'Internal server error'
+    });
+  }
+});
 
 
 // 404 handler
