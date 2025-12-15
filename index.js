@@ -462,7 +462,7 @@ app.post('/api/sendPaymentMessage', async (req, res) => {
       `https://api.telegram.org/bot${process.env.BOT_TOKEN}/sendMessage`,
       {
         chat_id: tlgid,
-        text: 'нажмите 👉/pay , что бы пополнить баланс',
+        text: 'нажмите 👉/pay , что бы оплатить подписку',
       }
     );
 
